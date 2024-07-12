@@ -18,6 +18,19 @@ def get_broadband_customer_support_prompt(context):
     ])
     return prompt
 
+#to end convo prompt
+def get_end_conversation_prompt(context):
+    prompt = ChatPromptTemplate.from_messages([
+        ("system",
+         f"{context}\n\n"
+         "You are a customer named Alex Reddy. You are happy with the suggestions provided by the agent.\n"
+         "Respond with a closing statement such as 'Thank you, I will try your suggestion.'"
+         "The agent will then respond with a closing statement like 'Happy to assist you.'"
+        )
+    ])
+    return prompt
+
+#To get starting recommendations
 def get_recommendation_prompt(output):
     prompt = ChatPromptTemplate.from_messages([
         ("system", 
@@ -30,4 +43,23 @@ def get_recommendation_prompt(output):
         )
     ])
     return prompt
-print(get_recommendation_prompt(""))
+
+# Define the new prompt function for final recommendations
+def get_final_recommendation_prompt(output):
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", 
+          f"{output}\n\n"
+          "Read the above conversation. You are supposed to act as the support agent.\n"
+          "Respond with a final closing statement acknowledging the customer's thanks.\n"
+          "Say 'Happy to assist you. If the problem still exists, feel free to connect.'\n"
+        )
+    ])
+    return prompt
+
+# print(get_broadband_customer_support_prompt(""))
+# print(get_recommendation_prompt(""))
+# print(get_end_conversation_prompt(""))
+
+# print(get_final_recommendation_prompt(""))
+
+
