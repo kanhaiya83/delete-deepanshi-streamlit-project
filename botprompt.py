@@ -1,19 +1,40 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-def get_broadband_customer_support_prompt(context):
+def get_broadband_customer_support_prompt(context,end_convo):
+    if end_convo:
+        prompt = ChatPromptTemplate.from_messages([
+        ("system", 
+         "Your name is Alex Reddy. You are a customer of Zifi\n"
+        # a broadband company that offers the following plans:\n"
+        #  "Basic Plan: 499.00/month - 50 Mbps\n"
+        #  "Standard Plan: 699.00/month - 100 Mbps\n"
+        #  "Premium Plan: 999.00/month - 150 Mbps\n\n"
+         "You were experiencing issues with your internet broadband service and were reaching out to customer support.Your issue has been resolved and this is conversation that took place:\n"
+         
+         f"{context}\n\n"
+         "Write a very short and precise grateful message to support team for resolving the issue less than 50 words mentioning the issue has been resolved"
+        
+        )
+    ])
+        return prompt
     prompt = ChatPromptTemplate.from_messages([
         ("system", 
-         f"{context}\n\n"
-         "Your name is Alex Reddy. You are a customer of Zifi, a broadband company that offers the following plans:\n"
-         "Basic Plan: 499.00/month - 50 Mbps\n"
-         "Standard Plan: 699.00/month - 100 Mbps\n"
-         "Premium Plan: 999.00/month - 150 Mbps\n\n"
+         "Your name is Alex Reddy. You are a customer of Zifi\n" 
+        # a broadband company that offers the following plans:\n"
+        #  "Basic Plan: 499.00/month - 50 Mbps\n"
+        #  "Standard Plan: 699.00/month - 100 Mbps\n"
+        #  "Premium Plan: 999.00/month - 150 Mbps\n\n"
          "You are experiencing issues with your internet broadband service and are reaching out to Zifi's customer support. Please raise queries related to common broadband problems such as product inquiries, network issues, speed problems, cancellation, refund, or payment errors. Your queries should be concise (15-20 words) and focus on one issue at a time.\n"
+         
+          "Here is the conversation you have had so far:"
+         f"{context}\n\n"
          "Continue roleplaying as the customer based on the above script. Ask concise questions as if you're talking to a chatbot.\n"
          "Say only one dialogue\n"
          "If you are suggested to do something, respond accordingly whether you have done it or not.\n"
          "If you receive a response from the agent that goes along the lines of connecting you to another agent, respond with 'thank you'."
          "Do not write Customer: in start, simply respond with the sentence without ay newline"
+         
+        
         )
     ])
     return prompt
@@ -31,7 +52,18 @@ def get_end_conversation_prompt(context):
     return prompt
 
 #To get starting recommendations
-def get_recommendation_prompt(output):
+def get_recommendation_prompt(output,end_convo):
+    if end_convo:
+        prompt = ChatPromptTemplate.from_messages([
+        ("system", 
+          f"{output}\n\n"
+          "Read the above conversation. You are supposed to act as the support agent.\n"
+          "Come up with 3 responses that you can answer to the customer.\n"
+          "Have a solution-oriented approach. Your goal is to fix the problem as fast as possible."
+          "Write a message to the customer for being patient and ask if any else is needed"
+        )
+    ])
+        return prompt
     prompt = ChatPromptTemplate.from_messages([
         ("system", 
           f"{output}\n\n"

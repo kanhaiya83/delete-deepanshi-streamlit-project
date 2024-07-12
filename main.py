@@ -10,30 +10,25 @@ from botprompt import get_broadband_customer_support_prompt, get_recommendation_
 
 # Load environment variables from .env file
 load_dotenv()
-
+conversation_limit = 2
 # Define function to initialize chatbot
 def initialize_chatbot(context):
-    prompt = get_broadband_customer_support_prompt(context)
-    llm = Replicate(model="meta/meta-llama-3-8b-instruct",)
+    prompt = get_broadband_customer_support_prompt(context,end_convo=st.session_state.rounds==conversation_limit)
+    # llm = Replicate(model="meta/meta-llama-3-8b-instruct",)
+    llm = OpenAI(model_name="gpt-3.5-turbo-instruct")
     output_parser = StrOutputParser()
     chain = prompt | llm | output_parser
     return chain
 
 # Define function to initialize recommendation model
 def initialize_recommendation_model(output):
-    prompt = get_recommendation_prompt(output)
-    llm = Replicate(model="meta/meta-llama-3-8b-instruct",)
+    prompt = get_recommendation_prompt(output,end_convo=st.session_state.rounds==conversation_limit)
+    # llm = Replicate(model="meta/meta-llama-3-8b-instruct",)
+    llm = OpenAI(model_name="gpt-3.5-turbo-instruct")
     output_parser = StrOutputParser()
     chain = prompt | llm | output_parser
     return chain
 
-# Define function to initialize end conversation model
-def initialize_end_conversation_model(context):
-    prompt = get_end_conversation_prompt(context)
-    llm = Replicate(model="meta/meta-llama-3-8b-instruct",)
-    output_parser = StrOutputParser()
-    chain = prompt | llm | output_parser
-    return chain
 
 st.set_page_config(page_title="Customer Support")
 
@@ -58,8 +53,9 @@ with col1:
         st.write(f"{role}: {message}")
 
     def on_input(input_text):
-        if st.session_state.rounds >= 3:
-            st.write("Conversation ended after 3 rounds.")
+        if st.session_state.rounds > conversation_limit:
+            # st.write("Conversation ended a
+            st.write(f"Customer: {input_text}")
             return
 
         st.session_state.conversation.append(("Agent", input_text))
@@ -67,11 +63,7 @@ with col1:
         # Generate context from the current conversation
         context = "\n".join([f"{role}: {message}" for role, message in st.session_state.conversation])
 
-        # Check if it's the second round to end the conversation gracefully
-        if st.session_state.rounds == 2:
-            chain = initialize_end_conversation_model(context)
-        else:
-            chain = initialize_chatbot(context)
+        chain = initialize_chatbot(context)
 
         # Get response from chatbot
         output = chain.invoke({'question': input_text})
@@ -80,10 +72,9 @@ with col1:
         st.write(f"Customer: {_output}")
 
         # Initialize recommendation model with the new customer output if not ending
-        if st.session_state.rounds < 2:
-            rec_chain = initialize_recommendation_model(output)
-            rec_output = rec_chain.invoke({'question': output})
-            st.session_state.recommendations = rec_output.split('\n')
+        rec_chain = initialize_recommendation_model(output)
+        rec_output = rec_chain.invoke({'question': output})
+        st.session_state.recommendations = rec_output.split('\n')
 
         # Increment rounds counter
         st.session_state.rounds += 1
